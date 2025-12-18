@@ -1,0 +1,996 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>وقت النوم - تخلص من السهر</title>
+    
+    <!-- PWA Meta Tags -->
+    <meta name="theme-color" content="#1a1a2e">
+    <meta name="description" content="تطبيق للتخلص من عادة السهر وإدمان الهاتف ليلاً">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="وقت النوم">
+    <meta name="mobile-web-app-capable" content="yes">
+    
+    <!-- App Icons -->
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🌙</text></svg>">
+    <link rel="apple-touch-icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🌙</text></svg>">
+    
+    <!-- Web App Manifest -->
+    <link rel="manifest" href="data:application/json,%7B%22name%22%3A%22%D9%88%D9%82%D8%AA%20%D8%A7%D9%84%D9%86%D9%88%D9%85%22%2C%22short_name%22%3A%22%D9%88%D9%82%D8%AA%20%D8%A7%D9%84%D9%86%D9%88%D9%85%22%2C%22description%22%3A%22%D8%AA%D8%B7%D8%A8%D9%8A%D9%82%20%D9%84%D9%84%D8%AA%D8%AE%D9%84%D8%B5%20%D9%85%D9%86%20%D8%B9%D8%A7%D8%AF%D8%A9%20%D8%A7%D9%84%D8%B3%D9%87%D8%B1%22%2C%22start_url%22%3A%22.%22%2C%22display%22%3A%22standalone%22%2C%22orientation%22%3A%22portrait%22%2C%22background_color%22%3A%22%231a1a2e%22%2C%22theme_color%22%3A%22%231a1a2e%22%2C%22icons%22%3A%5B%7B%22src%22%3A%22data%3Aimage%2Fsvg%2Bxml%2C%3Csvg%20xmlns%3D%27http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%27%20viewBox%3D%270%200%20100%20100%27%3E%3Ctext%20y%3D%27.9em%27%20font-size%3D%2790%27%3E%F0%9F%8C%99%3C%2Ftext%3E%3C%2Fsvg%3E%22%2C%22sizes%22%3A%22any%22%2C%22type%22%3A%22image%2Fsvg%2Bxml%22%7D%5D%7D">
+    
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        * {
+            font-family: 'Cairo', sans-serif;
+        }
+        
+        .lock-screen {
+            background: linear-gradient(135deg, #0a0a1a 0%, #1a1a2e 50%, #0f1729 100%);
+        }
+        
+        .stars {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            overflow: hidden;
+        }
+        
+        .star {
+            position: absolute;
+            background: white;
+            border-radius: 50%;
+            animation: twinkle 2s infinite;
+        }
+        
+        @keyframes twinkle {
+            0%, 100% { opacity: 0.3; }
+            50% { opacity: 1; }
+        }
+        
+        .moon {
+            width: 120px;
+            height: 120px;
+            background: linear-gradient(135deg, #f5f5dc 0%, #ffd700 100%);
+            border-radius: 50%;
+            box-shadow: 0 0 60px rgba(255, 215, 0, 0.5);
+            position: relative;
+        }
+        
+        .moon::before {
+            content: '';
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            width: 90px;
+            height: 90px;
+            background: #0a0a1a;
+            border-radius: 50%;
+        }
+        
+        .pulse {
+            animation: pulse 2s infinite;
+        }
+        
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+        
+        .slide-up {
+            animation: slideUp 0.5s ease-out;
+        }
+        
+        @keyframes slideUp {
+            from { transform: translateY(100px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+        
+        .glow {
+            box-shadow: 0 0 30px rgba(99, 102, 241, 0.5);
+        }
+        
+        input[type="time"] {
+            color-scheme: dark;
+        }
+        
+        .warning-pulse {
+            animation: warningPulse 1s infinite;
+        }
+        
+        @keyframes warningPulse {
+            0%, 100% { background-color: rgba(251, 191, 36, 0.2); }
+            50% { background-color: rgba(251, 191, 36, 0.4); }
+        }
+        
+        .shake {
+            animation: shake 0.5s;
+        }
+        
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-10px); }
+            75% { transform: translateX(10px); }
+        }
+        
+        .breathing-text {
+            animation: breathe 4s infinite;
+        }
+        
+        @keyframes breathe {
+            0%, 100% { opacity: 0.7; transform: scale(1); }
+            50% { opacity: 1; transform: scale(1.02); }
+        }
+        
+        .floating {
+            animation: float 3s ease-in-out infinite;
+        }
+        
+        @keyframes float {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+
+        .lock-overlay {
+            backdrop-filter: blur(10px);
+        }
+    </style>
+</head>
+<body class="min-h-screen bg-gray-900">
+    <!-- تنبيه قبل القفل -->
+    <div id="warningAlert" class="fixed inset-0 z-40 bg-black/70 flex items-center justify-center hidden">
+        <div class="warning-pulse bg-yellow-900/90 border-2 border-yellow-500 rounded-3xl p-8 max-w-md mx-4 text-center slide-up">
+            <div class="text-7xl mb-4 floating">⏰</div>
+            <h2 class="text-3xl font-bold text-yellow-400 mb-4">تنبيه!</h2>
+            <p class="text-xl text-yellow-100 mb-4">باقي <span id="warningMinutes">15</span> دقيقة على وقت النوم</p>
+            <p class="text-yellow-200 mb-6">أنهِ ما تفعله واستعد للنوم الآن</p>
+            
+            <div class="bg-yellow-800/50 rounded-xl p-4 mb-6">
+                <p class="text-yellow-100 text-sm" id="warningTip">💡 ضع هاتفك على الشحن بعيداً عن سريرك</p>
+            </div>
+            
+            <button onclick="dismissWarning()" class="bg-yellow-600 hover:bg-yellow-700 text-white px-8 py-3 rounded-xl transition-all font-bold">
+                حسناً، فهمت ✓
+            </button>
+        </div>
+    </div>
+
+    <!-- شاشة القفل -->
+    <div id="lockScreen" class="lock-screen fixed inset-0 z-50 flex flex-col items-center justify-center hidden">
+        <div class="stars" id="stars"></div>
+        
+        <div class="text-center slide-up px-4">
+            <div class="moon mx-auto mb-6 pulse"></div>
+            
+            <h1 class="text-4xl md:text-5xl font-bold text-white mb-4">🌙 وقت النوم</h1>
+            
+            <p class="text-xl text-indigo-200 mb-6 breathing-text" id="sleepMessage">حان وقت الراحة...</p>
+            
+            <div class="bg-white/10 backdrop-blur-lg rounded-3xl p-6 mb-6 max-w-md mx-auto">
+                <p class="text-indigo-200 text-lg mb-2">الوقت الحالي</p>
+                <p class="text-5xl font-bold text-white mb-4" id="currentTimeLock">00:00</p>
+                
+                <p class="text-indigo-200 text-lg mb-2">ينتهى القفل بعد</p>
+                <p class="text-3xl font-bold text-green-400" id="remainingTime">0 ساعة و 0 دقيقة</p>
+            </div>
+            
+            <!-- نصيحة اليوم المقنعة -->
+            <div class="bg-gradient-to-r from-purple-900/50 to-indigo-900/50 backdrop-blur-lg rounded-2xl p-5 mb-6 max-w-md mx-auto border border-purple-500/30">
+                <div class="flex items-center justify-center gap-2 mb-3">
+                    <span class="text-2xl">💎</span>
+                    <h3 class="text-lg font-bold text-purple-300">نصيحة الليلة</h3>
+                </div>
+                <p class="text-white text-lg leading-relaxed" id="dailyAdvice">
+                    النوم المبكر يجعلك أكثر ذكاءً وإبداعاً
+                </p>
+            </div>
+            
+            <!-- إحصائية تحفيزية -->
+            <div class="bg-green-900/30 rounded-xl p-4 mb-6 max-w-md mx-auto border border-green-500/30">
+                <p class="text-green-300" id="motivationStat">🏆 أنت في سلسلة نجاح: 0 أيام متتالية</p>
+            </div>
+            
+            <div class="space-y-4">
+                <button onclick="requestUnlock()" class="bg-red-500/20 hover:bg-red-500/40 text-red-300 px-8 py-3 rounded-full transition-all border border-red-500/50">
+                    🔓 طلب فتح القفل (حالات الطوارئ فقط)
+                </button>
+                
+                <p class="text-indigo-300 text-sm" id="skipCount">مرات التخطي هذا الأسبوع: 0</p>
+            </div>
+        </div>
+    </div>
+    
+    <!-- نافذة تأكيد فتح القفل المحسنة -->
+    <div id="unlockModal" class="fixed inset-0 z-[60] bg-black/90 flex items-center justify-center hidden">
+        <div id="unlockModalContent" class="bg-gray-800 rounded-3xl p-8 max-w-md mx-4 text-center slide-up">
+            <div class="text-6xl mb-4">🤔</div>
+            <h2 class="text-2xl font-bold text-white mb-4">لحظة تأمل...</h2>
+            
+            <p class="text-gray-300 mb-4" id="unlockQuestion">هل فعلاً تحتاج هاتفك الآن؟</p>
+            
+            <div class="bg-red-900/30 rounded-xl p-4 mb-6 border border-red-500/30">
+                <p class="text-red-300 text-sm" id="unlockConsequence">
+                    ⚠️ كل مرة تفتح القفل، تضعف قوة إرادتك وتبتعد عن هدفك
+                </p>
+            </div>
+            
+            <div class="space-y-3">
+                <button onclick="closeUnlockModal()" class="w-full bg-green-600 hover:bg-green-700 text-white py-4 rounded-xl transition-all font-bold text-lg">
+                    ✓ صحيح! سأنام الآن
+                </button>
+                <button onclick="showFinalWarning()" class="w-full bg-gray-700 hover:bg-gray-600 text-gray-300 py-3 rounded-xl transition-all text-sm">
+                    ما زلت أريد الفتح...
+                </button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- التحذير الأخير -->
+    <div id="finalWarning" class="fixed inset-0 z-[70] bg-black/95 flex items-center justify-center hidden">
+        <div class="bg-red-900/80 border-2 border-red-500 rounded-3xl p-8 max-w-md mx-4 text-center slide-up">
+            <div class="text-6xl mb-4">⛔</div>
+            <h2 class="text-2xl font-bold text-red-400 mb-4">تحذير أخير!</h2>
+            
+            <p class="text-white mb-4" id="finalAdvice">
+                تذكر: أنت وضعت هذا القفل لسبب مهم. صحتك ونجاحك يعتمدان على نوم جيد.
+            </p>
+            
+            <div class="bg-black/50 rounded-xl p-4 mb-6">
+                <p class="text-yellow-400 font-bold mb-2">عدد مرات التخطي: <span id="totalSkips">0</span></p>
+                <p class="text-gray-400 text-sm">سيُسجل هذا التخطي وستفقد سلسلة نجاحك</p>
+            </div>
+            
+            <div class="space-y-3">
+                <button onclick="confirmUnlock()" class="w-full bg-red-600 hover:bg-red-700 text-white py-3 rounded-xl transition-all">
+                    أفهم العواقب - افتح القفل
+                </button>
+                <button onclick="closeFinalWarning()" class="w-full bg-green-600 hover:bg-green-700 text-white py-4 rounded-xl transition-all font-bold text-lg">
+                    💪 لا! سأكون قوياً وأنام
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- الشاشة الرئيسية -->
+    <div id="mainScreen" class="min-h-screen bg-gradient-to-br from-gray-900 via-indigo-900 to-purple-900 p-4 md:p-8">
+        <div class="max-w-2xl mx-auto">
+            <!-- الهيدر -->
+            <div class="text-center mb-8">
+                <h1 class="text-3xl md:text-4xl font-bold text-white mb-2">🌙 وقت النوم</h1>
+                <p class="text-indigo-200">تخلص من عادة السهر واستعد نشاطك</p>
+            </div>
+            
+            <!-- الحالة الحالية -->
+            <div class="bg-white/10 backdrop-blur-lg rounded-3xl p-6 mb-6 glow">
+                <div class="flex items-center justify-between mb-4">
+                    <span class="text-white text-xl font-bold">الحالة الحالية</span>
+                    <span id="statusBadge" class="px-4 py-1 rounded-full text-sm font-bold bg-green-500 text-white">نشط</span>
+                </div>
+                
+                <div class="text-center">
+                    <p class="text-6xl font-bold text-white mb-2" id="currentTime">00:00</p>
+                    <p class="text-indigo-200" id="currentDate">الأحد، 1 يناير 2024</p>
+                </div>
+                
+                <div id="nextLockInfo" class="mt-4 text-center bg-white/5 rounded-xl p-3">
+                    <p class="text-indigo-300 text-sm">القفل التالي بعد: <span id="nextLockTime" class="font-bold text-white">--</span></p>
+                </div>
+            </div>
+            
+            <!-- إعدادات الوقت -->
+            <div class="bg-white/10 backdrop-blur-lg rounded-3xl p-6 mb-6">
+                <h2 class="text-xl font-bold text-white mb-6 flex items-center gap-2">
+                    <span>⏰</span> ضبط أوقات القفل
+                </h2>
+                
+                <div class="grid grid-cols-2 gap-4 mb-6">
+                    <div>
+                        <label class="block text-indigo-200 mb-2 text-sm">بداية القفل (وقت النوم)</label>
+                        <input type="time" id="startTime" value="22:00" 
+                            class="w-full bg-white/10 border border-indigo-400/30 rounded-xl px-4 py-3 text-white text-center text-xl focus:outline-none focus:border-indigo-400">
+                    </div>
+                    <div>
+                        <label class="block text-indigo-200 mb-2 text-sm">نهاية القفل (وقت الاستيقاظ)</label>
+                        <input type="time" id="endTime" value="05:00" 
+                            class="w-full bg-white/10 border border-indigo-400/30 rounded-xl px-4 py-3 text-white text-center text-xl focus:outline-none focus:border-indigo-400">
+                    </div>
+                </div>
+                
+                <div class="space-y-3 mb-6">
+                    <div class="flex items-center justify-between p-4 bg-white/5 rounded-xl">
+                        <span class="text-white">تفعيل القفل التلقائي</span>
+                        <label class="relative inline-flex items-center cursor-pointer">
+                            <input type="checkbox" id="lockEnabled" class="sr-only peer" checked>
+                            <div class="w-14 h-7 bg-gray-600 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:start-[4px] after:bg-white after:rounded-full after:h-6 after:w-6 after:transition-all peer-checked:bg-indigo-600"></div>
+                        </label>
+                    </div>
+                    
+                    <div class="flex items-center justify-between p-4 bg-white/5 rounded-xl">
+                        <span class="text-white">تنبيه قبل القفل بـ 15 دقيقة</span>
+                        <label class="relative inline-flex items-center cursor-pointer">
+                            <input type="checkbox" id="warningEnabled" class="sr-only peer" checked>
+                            <div class="w-14 h-7 bg-gray-600 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:start-[4px] after:bg-white after:rounded-full after:h-6 after:w-6 after:transition-all peer-checked:bg-yellow-600"></div>
+                        </label>
+                    </div>
+                    
+                    <div class="flex items-center justify-between p-4 bg-white/5 rounded-xl">
+                        <span class="text-white">تشغيل صوت التنبيه</span>
+                        <label class="relative inline-flex items-center cursor-pointer">
+                            <input type="checkbox" id="soundEnabled" class="sr-only peer" checked>
+                            <div class="w-14 h-7 bg-gray-600 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:start-[4px] after:bg-white after:rounded-full after:h-6 after:w-6 after:transition-all peer-checked:bg-green-600"></div>
+                        </label>
+                    </div>
+                </div>
+                
+                <button onclick="saveSettings()" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white py-3 rounded-xl transition-all font-bold">
+                    💾 حفظ الإعدادات
+                </button>
+            </div>
+            
+            <!-- نصيحة اليوم -->
+            <div class="bg-gradient-to-r from-purple-800/50 to-pink-800/50 backdrop-blur-lg rounded-3xl p-6 mb-6 border border-purple-500/30">
+                <h2 class="text-xl font-bold text-white mb-4 flex items-center gap-2">
+                    <span>💡</span> نصيحة اليوم
+                </h2>
+                <p class="text-purple-100 text-lg leading-relaxed" id="dailyTip">
+                    ضع هاتفك بعيداً عن السرير قبل النوم بساعة على الأقل.
+                </p>
+                <p class="text-purple-300 text-sm mt-3" id="tipNumber">النصيحة 1 من 30</p>
+            </div>
+            
+            <!-- الإحصائيات -->
+            <div class="bg-white/10 backdrop-blur-lg rounded-3xl p-6 mb-6">
+                <h2 class="text-xl font-bold text-white mb-6 flex items-center gap-2">
+                    <span>📊</span> إحصائياتك
+                </h2>
+                
+                <div class="grid grid-cols-2 gap-4">
+                    <div class="bg-white/5 rounded-xl p-4 text-center">
+                        <p class="text-3xl font-bold text-green-400" id="successDays">0</p>
+                        <p class="text-indigo-200 text-sm">أيام ناجحة</p>
+                    </div>
+                    <div class="bg-white/5 rounded-xl p-4 text-center">
+                        <p class="text-3xl font-bold text-red-400" id="skipDays">0</p>
+                        <p class="text-indigo-200 text-sm">مرات التخطي</p>
+                    </div>
+                    <div class="bg-white/5 rounded-xl p-4 text-center">
+                        <p class="text-3xl font-bold text-yellow-400" id="currentStreak">0</p>
+                        <p class="text-indigo-200 text-sm">سلسلة متتالية</p>
+                    </div>
+                    <div class="bg-white/5 rounded-xl p-4 text-center">
+                        <p class="text-3xl font-bold text-purple-400" id="bestStreak">0</p>
+                        <p class="text-indigo-200 text-sm">أفضل سلسلة</p>
+                    </div>
+                </div>
+                
+                <button onclick="resetStats()" class="w-full mt-4 bg-red-500/20 hover:bg-red-500/40 text-red-300 py-2 rounded-xl transition-all text-sm">
+                    إعادة ضبط الإحصائيات
+                </button>
+            </div>
+            
+            <!-- زر اختبار -->
+            <div class="mt-6 text-center space-x-4 space-x-reverse">
+                <button onclick="testWarning()" class="text-yellow-300 hover:text-white text-sm underline">
+                    🔔 اختبار التنبيه
+                </button>
+                <button onclick="testLockScreen()" class="text-indigo-300 hover:text-white text-sm underline">
+                    🧪 اختبار شاشة القفل
+                </button>
+            </div>
+            
+            <!-- زر تثبيت التطبيق -->
+            <div id="installSection" class="mt-8 bg-gradient-to-r from-green-800/50 to-teal-800/50 backdrop-blur-lg rounded-3xl p-6 border border-green-500/30">
+                <h2 class="text-xl font-bold text-white mb-4 flex items-center gap-2">
+                    <span>📲</span> تثبيت التطبيق على هاتفك
+                </h2>
+                
+                <div id="installPrompt" class="hidden">
+                    <p class="text-green-100 mb-4">يمكنك تثبيت التطبيق مباشرة على شاشتك الرئيسية!</p>
+                    <button id="installBtn" onclick="installApp()" class="w-full bg-green-600 hover:bg-green-700 text-white py-4 rounded-xl transition-all font-bold text-lg flex items-center justify-center gap-2">
+                        <span>📥</span> تثبيت التطبيق الآن
+                    </button>
+                </div>
+                
+                <div id="installInstructions">
+                    <p class="text-green-100 mb-4">اتبع الخطوات التالية لتثبيت التطبيق:</p>
+                    
+                    <div class="space-y-3 text-right">
+                        <div class="bg-white/10 rounded-xl p-4">
+                            <p class="text-white font-bold mb-2">📱 لهواتف الأندرويد (Chrome):</p>
+                            <ol class="text-green-200 text-sm space-y-2 list-decimal list-inside">
+                                <li>اضغط على زر القائمة ⋮ (ثلاث نقاط) في أعلى المتصفح</li>
+                                <li>اختر "تثبيت التطبيق" أو "إضافة إلى الشاشة الرئيسية"</li>
+                                <li>اضغط "تثبيت" في النافذة المنبثقة</li>
+                                <li>سيظهر التطبيق على شاشتك الرئيسية! 🎉</li>
+                            </ol>
+                        </div>
+                        
+                        <div class="bg-white/10 rounded-xl p-4">
+                            <p class="text-white font-bold mb-2">🍎 لهواتف الآيفون (Safari):</p>
+                            <ol class="text-green-200 text-sm space-y-2 list-decimal list-inside">
+                                <li>اضغط على زر المشاركة ⬆️ في أسفل الشاشة</li>
+                                <li>مرر لأسفل واختر "إضافة إلى الشاشة الرئيسية"</li>
+                                <li>اضغط "إضافة" في أعلى اليمين</li>
+                                <li>سيظهر التطبيق كأيقونة على شاشتك! 🎉</li>
+                            </ol>
+                        </div>
+                    </div>
+                    
+                    <div class="mt-4 bg-yellow-900/30 rounded-xl p-4 border border-yellow-500/30">
+                        <p class="text-yellow-300 text-sm">
+                            ⚠️ <strong>نصيحة مهمة:</strong> بعد التثبيت، افتح التطبيق من الشاشة الرئيسية (وليس من المتصفح) لتجربة أفضل بملء الشاشة!
+                        </p>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- معلومات إضافية -->
+            <div class="mt-6 text-center text-indigo-300 text-sm">
+                <p>💡 التطبيق يعمل بدون إنترنت بعد التثبيت</p>
+                <p class="mt-1">🔒 بياناتك محفوظة على جهازك فقط</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // المتغيرات
+        let settings = {
+            startTime: '22:00',
+            endTime: '05:00',
+            enabled: true,
+            warningEnabled: true,
+            soundEnabled: true
+        };
+        
+        let stats = {
+            successDays: 0,
+            skipDays: 0,
+            currentStreak: 0,
+            bestStreak: 0,
+            lastCheckDate: null,
+            weeklySkips: 0,
+            weekStart: null
+        };
+        
+        let warningShown = false;
+        let warningDismissed = false;
+        
+        // النصائح اليومية المقنعة (30 نصيحة مختلفة)
+        const dailyAdvices = [
+            "الهاتف سيكون موجوداً غداً، لكن صحتك قد لا تنتظر. كل ساعة سهر تسرق من عمرك.",
+            "العلماء يقولون: النوم قبل 11 مساءً يضاعف إنتاج هرمون النمو والشباب.",
+            "هل تعلم أن السهر يسبب زيادة الوزن؟ جسمك يفرز هرمون الجوع عندما لا تنام.",
+            "كل إشعار يمكن أن ينتظر، لكن دماغك يحتاج الراحة الآن.",
+            "الناجحون ينامون مبكراً. جيف بيزوس ينام 8 ساعات يومياً.",
+            "شاشة الهاتف تخدع دماغك وتوقف إفراز الميلاتونين. أغلقها الآن.",
+            "غداً ستشكر نفسك على هذا القرار. النوم الآن = طاقة مضاعفة.",
+            "السهر المتكرر يضعف المناعة ويجعلك عرضة للأمراض.",
+            "ذاكرتك تتحسن أثناء النوم. كل ما تعلمته اليوم يُحفظ الآن.",
+            "البشرة تتجدد ليلاً. النوم المبكر = بشرة أجمل وأصغر سناً.",
+            "التركيز والإبداع يحتاجان نوماً كافياً. لا تسرق من غدك.",
+            "القلق والاكتئاب يزيدان مع قلة النوم. راحتك النفسية تبدأ الآن.",
+            "الرياضيون المحترفون ينامون 10 ساعات. النوم سر الأداء العالي.",
+            "هاتفك مصمم لإدمانك. كن أقوى منه واختر صحتك.",
+            "كل دقيقة سهر = دقيقتان تعب غداً. الحساب بسيط.",
+            "النوم الجيد يحسن قراراتك المالية والحياتية.",
+            "السهر يرفع ضغط الدم ويضر القلب. قلبك يستحق الراحة.",
+            "دماغك ينظف السموم أثناء النوم العميق. امنحه الفرصة.",
+            "العلاقات تتحسن عندما تكون مرتاحاً. لا تكن عصبياً بسبب السهر.",
+            "الإنتاجية تنخفض 40% مع قلة النوم. استثمر في نومك.",
+            "أعظم الأفكار تأتي بعد نوم مريح. دماغك يحل المشاكل وأنت نائم.",
+            "السهر عادة، والعادات يمكن تغييرها. ابدأ الآن.",
+            "جسمك يصلح خلاياه ليلاً. كل ليلة سهر = شيخوخة مبكرة.",
+            "الطاقة الحقيقية تأتي من النوم، لا من القهوة.",
+            "قوة الإرادة تضعف مع السهر. قرارات الليل غالباً سيئة.",
+            "النوم المنتظم يحسن المزاج ويقلل التوتر.",
+            "هل الفيديو أو المنشور يستحق صحتك؟ الجواب دائماً: لا.",
+            "كل يوم تنام مبكراً، تبني عادة ستغير حياتك.",
+            "النجاح يبدأ بروتين صباحي، والروتين الصباحي يبدأ بنوم مبكر.",
+            "أنت أقوى من إدمان الهاتف. أثبت ذلك الآن."
+        ];
+        
+        // رسائل شاشة القفل
+        const sleepMessages = [
+            "حان وقت الراحة... جسمك يحتاجك 🌙",
+            "أغلق عينيك واسترخِ، العالم سينتظرك ✨",
+            "كل نجم في السماء يذكرك بأن الليل للنوم 🌟",
+            "استمع لجسمك، إنه يطلب الراحة الآن 💤",
+            "غداً يوم جديد مليء بالفرص، استعد له 🌅",
+            "النوم هدية تعطيها لنفسك، استمتع بها 🎁",
+            "دع الهموم لغداً، الآن وقت السلام 🕊️",
+            "كل ثانية نوم تبني جسماً وعقلاً أقوى 💪"
+        ];
+        
+        // نصائح التحذير
+        const warningTips = [
+            "💡 ضع هاتفك على الشحن بعيداً عن سريرك",
+            "💡 اشرب كوب ماء وجهز سريرك للنوم",
+            "💡 أغلق جميع التطبيقات واستعد للراحة",
+            "💡 خذ نفساً عميقاً وأرخِ كتفيك",
+            "💡 فكر في 3 أشياء جميلة حدثت اليوم",
+            "💡 اقرأ صفحة من كتاب ورقي قبل النوم"
+        ];
+        
+        // تحميل الإعدادات المحفوظة
+        function loadSettings() {
+            const saved = localStorage.getItem('sleepSettings');
+            if (saved) {
+                settings = { ...settings, ...JSON.parse(saved) };
+                document.getElementById('startTime').value = settings.startTime;
+                document.getElementById('endTime').value = settings.endTime;
+                document.getElementById('lockEnabled').checked = settings.enabled;
+                document.getElementById('warningEnabled').checked = settings.warningEnabled;
+                document.getElementById('soundEnabled').checked = settings.soundEnabled;
+            }
+            
+            const savedStats = localStorage.getItem('sleepStats');
+            if (savedStats) {
+                stats = { ...stats, ...JSON.parse(savedStats) };
+                
+                // إعادة ضبط العد الأسبوعي
+                const now = new Date();
+                const weekStart = getWeekStart(now);
+                if (stats.weekStart !== weekStart.toISOString()) {
+                    stats.weeklySkips = 0;
+                    stats.weekStart = weekStart.toISOString();
+                    localStorage.setItem('sleepStats', JSON.stringify(stats));
+                }
+            }
+            
+            updateStatsDisplay();
+        }
+        
+        function getWeekStart(date) {
+            const d = new Date(date);
+            const day = d.getDay();
+            const diff = d.getDate() - day + (day === 0 ? -6 : 1);
+            d.setDate(diff);
+            d.setHours(0, 0, 0, 0);
+            return d;
+        }
+        
+        // حفظ الإعدادات
+        function saveSettings() {
+            settings.startTime = document.getElementById('startTime').value;
+            settings.endTime = document.getElementById('endTime').value;
+            settings.enabled = document.getElementById('lockEnabled').checked;
+            settings.warningEnabled = document.getElementById('warningEnabled').checked;
+            settings.soundEnabled = document.getElementById('soundEnabled').checked;
+            
+            localStorage.setItem('sleepSettings', JSON.stringify(settings));
+            
+            warningShown = false;
+            warningDismissed = false;
+            
+            showToast('تم حفظ الإعدادات بنجاح ✓');
+            checkLockStatus();
+        }
+        
+        // عرض رسالة
+        function showToast(message) {
+            const toast = document.createElement('div');
+            toast.className = 'fixed bottom-4 left-1/2 transform -translate-x-1/2 bg-green-600 text-white px-6 py-3 rounded-full z-[100] slide-up';
+            toast.textContent = message;
+            document.body.appendChild(toast);
+            
+            setTimeout(() => toast.remove(), 3000);
+        }
+        
+        // تحديث الوقت
+        function updateTime() {
+            const now = new Date();
+            const timeStr = now.toLocaleTimeString('ar-SA', { hour: '2-digit', minute: '2-digit', hour12: false });
+            const dateStr = now.toLocaleDateString('ar-SA', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+            
+            document.getElementById('currentTime').textContent = timeStr;
+            document.getElementById('currentDate').textContent = dateStr;
+            document.getElementById('currentTimeLock').textContent = timeStr;
+            
+            updateNextLockTime();
+        }
+        
+        // تحديث وقت القفل التالي
+        function updateNextLockTime() {
+            const now = new Date();
+            const [startH, startM] = settings.startTime.split(':').map(Number);
+            
+            let nextLock = new Date(now);
+            nextLock.setHours(startH, startM, 0, 0);
+            
+            if (nextLock <= now) {
+                nextLock.setDate(nextLock.getDate() + 1);
+            }
+            
+            const diff = nextLock - now;
+            const hours = Math.floor(diff / (1000 * 60 * 60));
+            const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+            
+            document.getElementById('nextLockTime').textContent = `${hours} ساعة و ${minutes} دقيقة`;
+        }
+        
+        // التحقق من حالة القفل
+        function checkLockStatus() {
+            if (!settings.enabled) {
+                hideLockScreen();
+                hideWarning();
+                updateStatusBadge(false, false);
+                return;
+            }
+            
+            const now = new Date();
+            const currentMinutes = now.getHours() * 60 + now.getMinutes();
+            
+            const [startH, startM] = settings.startTime.split(':').map(Number);
+            const [endH, endM] = settings.endTime.split(':').map(Number);
+            
+            const startMinutes = startH * 60 + startM;
+            const endMinutes = endH * 60 + endM;
+            const warningMinutes = startMinutes - 15;
+            
+            let isLockTime = false;
+            let isWarningTime = false;
+            
+            if (startMinutes > endMinutes) {
+                // القفل يمتد عبر منتصف الليل
+                isLockTime = currentMinutes >= startMinutes || currentMinutes < endMinutes;
+                isWarningTime = currentMinutes >= warningMinutes && currentMinutes < startMinutes;
+            } else {
+                isLockTime = currentMinutes >= startMinutes && currentMinutes < endMinutes;
+                isWarningTime = currentMinutes >= warningMinutes && currentMinutes < startMinutes;
+            }
+            
+            // معالجة التحذير
+            if (isWarningTime && settings.warningEnabled && !warningShown && !warningDismissed) {
+                showWarning(startMinutes - currentMinutes);
+            }
+            
+            // معالجة القفل
+            if (isLockTime) {
+                showLockScreen();
+                updateRemainingTime();
+                warningDismissed = false;
+                warningShown = false;
+            } else {
+                hideLockScreen();
+                checkDailySuccess();
+            }
+            
+            updateStatusBadge(isLockTime, isWarningTime);
+        }
+        
+        // عرض التنبيه
+        function showWarning(minutesLeft) {
+            warningShown = true;
+            document.getElementById('warningAlert').classList.remove('hidden');
+            document.getElementById('warningMinutes').textContent = Math.max(1, minutesLeft);
+            document.getElementById('warningTip').textContent = warningTips[Math.floor(Math.random() * warningTips.length)];
+            
+            if (settings.soundEnabled) {
+                playWarningSound();
+            }
+        }
+        
+        // تشغيل صوت التنبيه
+        function playWarningSound() {
+            try {
+                const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                
+                // نغمة تنبيه لطيفة
+                const playTone = (freq, startTime, duration) => {
+                    const oscillator = audioContext.createOscillator();
+                    const gainNode = audioContext.createGain();
+                    
+                    oscillator.connect(gainNode);
+                    gainNode.connect(audioContext.destination);
+                    
+                    oscillator.frequency.value = freq;
+                    oscillator.type = 'sine';
+                    
+                    gainNode.gain.setValueAtTime(0.3, startTime);
+                    gainNode.gain.exponentialRampToValueAtTime(0.01, startTime + duration);
+                    
+                    oscillator.start(startTime);
+                    oscillator.stop(startTime + duration);
+                };
+                
+                const now = audioContext.currentTime;
+                playTone(523, now, 0.3);
+                playTone(659, now + 0.3, 0.3);
+                playTone(784, now + 0.6, 0.5);
+            } catch (e) {
+                console.log('Audio not supported');
+            }
+        }
+        
+        // إخفاء التنبيه
+        function hideWarning() {
+            document.getElementById('warningAlert').classList.add('hidden');
+        }
+        
+        function dismissWarning() {
+            warningDismissed = true;
+            hideWarning();
+        }
+        
+        // تحديث الوقت المتبقي
+        function updateRemainingTime() {
+            const now = new Date();
+            const [endH, endM] = settings.endTime.split(':').map(Number);
+            
+            let endTime = new Date(now);
+            endTime.setHours(endH, endM, 0, 0);
+            
+            if (endTime <= now) {
+                endTime.setDate(endTime.getDate() + 1);
+            }
+            
+            const diff = endTime - now;
+            const hours = Math.floor(diff / (1000 * 60 * 60));
+            const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+            
+            document.getElementById('remainingTime').textContent = `${hours} ساعة و ${minutes} دقيقة`;
+        }
+        
+        // إظهار شاشة القفل
+        function showLockScreen() {
+            document.getElementById('lockScreen').classList.remove('hidden');
+            document.getElementById('sleepMessage').textContent = sleepMessages[Math.floor(Math.random() * sleepMessages.length)];
+            document.getElementById('skipCount').textContent = `مرات التخطي هذا الأسبوع: ${stats.weeklySkips}`;
+            
+            // نصيحة اليوم
+            const dayOfYear = Math.floor((new Date() - new Date(new Date().getFullYear(), 0, 0)) / (1000 * 60 * 60 * 24));
+            const adviceIndex = dayOfYear % dailyAdvices.length;
+            document.getElementById('dailyAdvice').textContent = dailyAdvices[adviceIndex];
+            
+            // إحصائية تحفيزية
+            if (stats.currentStreak > 0) {
+                document.getElementById('motivationStat').innerHTML = `🏆 أنت في سلسلة نجاح: <strong>${stats.currentStreak}</strong> أيام متتالية! استمر!`;
+            } else {
+                document.getElementById('motivationStat').textContent = '💪 ابدأ سلسلة نجاحك الليلة!';
+            }
+        }
+        
+        // إخفاء شاشة القفل
+        function hideLockScreen() {
+            document.getElementById('lockScreen').classList.add('hidden');
+        }
+        
+        // تحديث شارة الحالة
+        function updateStatusBadge(isLockTime, isWarningTime) {
+            const badge = document.getElementById('statusBadge');
+            if (!settings.enabled) {
+                badge.textContent = 'معطل';
+                badge.className = 'px-4 py-1 rounded-full text-sm font-bold bg-gray-500 text-white';
+            } else if (isLockTime) {
+                badge.textContent = 'وقت النوم 😴';
+                badge.className = 'px-4 py-1 rounded-full text-sm font-bold bg-indigo-500 text-white';
+            } else if (isWarningTime) {
+                badge.textContent = 'تحضير للنوم ⏰';
+                badge.className = 'px-4 py-1 rounded-full text-sm font-bold bg-yellow-500 text-white';
+            } else {
+                badge.textContent = 'نشط ✓';
+                badge.className = 'px-4 py-1 rounded-full text-sm font-bold bg-green-500 text-white';
+            }
+        }
+        
+        // طلب فتح القفل
+        function requestUnlock() {
+            document.getElementById('unlockModal').classList.remove('hidden');
+            document.getElementById('unlockModalContent').classList.add('shake');
+            setTimeout(() => {
+                document.getElementById('unlockModalContent').classList.remove('shake');
+            }, 500);
+        }
+        
+        // إغلاق نافذة فتح القفل
+        function closeUnlockModal() {
+            document.getElementById('unlockModal').classList.add('hidden');
+            document.getElementById('finalWarning').classList.add('hidden');
+        }
+        
+        // إظهار التحذير الأخير
+        function showFinalWarning() {
+            document.getElementById('unlockModal').classList.add('hidden');
+            document.getElementById('finalWarning').classList.remove('hidden');
+            document.getElementById('totalSkips').textContent = stats.skipDays;
+            
+            // نصيحة أخيرة عشوائية
+            const finalAdvices = [
+                "تذكر لماذا ثبّت هذا التطبيق: لتكون أفضل نسخة من نفسك.",
+                "النوم الآن = يوم رائع غداً. السهر = تعب وندم.",
+                "أنت أقوى من رغبتك في تصفح الهاتف. أثبت ذلك!",
+                "فكر في شعورك صباحاً بعد نوم جيد. أليس ذلك أفضل؟"
+            ];
+            document.getElementById('finalAdvice').textContent = finalAdvices[Math.floor(Math.random() * finalAdvices.length)];
+        }
+        
+        function closeFinalWarning() {
+            document.getElementById('finalWarning').classList.add('hidden');
+        }
+        
+        // تأكيد فتح القفل
+        function confirmUnlock() {
+            stats.skipDays++;
+            stats.weeklySkips++;
+            stats.currentStreak = 0;
+            localStorage.setItem('sleepStats', JSON.stringify(stats));
+            
+            closeUnlockModal();
+            hideLockScreen();
+            updateStatsDisplay();
+            
+            showToast('⚠️ تم فتح القفل - حاول النوم قريباً');
+            
+            // إعادة القفل بعد 15 دقيقة
+            setTimeout(() => {
+                checkLockStatus();
+            }, 15 * 60 * 1000);
+        }
+        
+        // التحقق من النجاح اليومي
+        function checkDailySuccess() {
+            const today = new Date().toDateString();
+            
+            if (stats.lastCheckDate !== today) {
+                const [endH, endM] = settings.endTime.split(':').map(Number);
+                const now = new Date();
+                
+                // إذا كان الوقت بعد انتهاء القفل
+                if (now.getHours() >= endH || (now.getHours() === endH && now.getMinutes() >= endM)) {
+                    // لم يتخطَ القفل اليوم
+                    stats.successDays++;
+                    stats.currentStreak++;
+                    
+                    if (stats.currentStreak > stats.bestStreak) {
+                        stats.bestStreak = stats.currentStreak;
+                    }
+                    
+                    showToast(`🎉 يوم ناجح! سلسلتك: ${stats.currentStreak} أيام`);
+                }
+                
+                stats.lastCheckDate = today;
+                localStorage.setItem('sleepStats', JSON.stringify(stats));
+                updateStatsDisplay();
+            }
+        }
+        
+        // تحديث عرض الإحصائيات
+        function updateStatsDisplay() {
+            document.getElementById('successDays').textContent = stats.successDays;
+            document.getElementById('skipDays').textContent = stats.skipDays;
+            document.getElementById('currentStreak').textContent = stats.currentStreak;
+            document.getElementById('bestStreak').textContent = stats.bestStreak;
+        }
+        
+        // إعادة ضبط الإحصائيات
+        function resetStats() {
+            if (confirm('هل أنت متأكد من إعادة ضبط جميع الإحصائيات؟')) {
+                stats = {
+                    successDays: 0,
+                    skipDays: 0,
+                    currentStreak: 0,
+                    bestStreak: 0,
+                    lastCheckDate: null,
+                    weeklySkips: 0,
+                    weekStart: new Date().toISOString()
+                };
+                localStorage.setItem('sleepStats', JSON.stringify(stats));
+                updateStatsDisplay();
+                showToast('تم إعادة ضبط الإحصائيات');
+            }
+        }
+        
+        // اختبار التنبيه
+        function testWarning() {
+            warningShown = false;
+            showWarning(15);
+        }
+        
+        // اختبار شاشة القفل
+        function testLockScreen() {
+            showLockScreen();
+            updateRemainingTime();
+        }
+        
+        // إنشاء النجوم
+        function createStars() {
+            const starsContainer = document.getElementById('stars');
+            starsContainer.innerHTML = '';
+            for (let i = 0; i < 80; i++) {
+                const star = document.createElement('div');
+                star.className = 'star';
+                const size = Math.random() * 3 + 1;
+                star.style.width = size + 'px';
+                star.style.height = size + 'px';
+                star.style.left = Math.random() * 100 + '%';
+                star.style.top = Math.random() * 100 + '%';
+                star.style.animationDelay = Math.random() * 3 + 's';
+                star.style.animationDuration = (Math.random() * 2 + 1) + 's';
+                starsContainer.appendChild(star);
+            }
+        }
+        
+        // عرض نصيحة اليوم في الشاشة الرئيسية
+        function showDailyTip() {
+            const dayOfYear = Math.floor((new Date() - new Date(new Date().getFullYear(), 0, 0)) / (1000 * 60 * 60 * 24));
+            const tipIndex = dayOfYear % dailyAdvices.length;
+            document.getElementById('dailyTip').textContent = dailyAdvices[tipIndex];
+            document.getElementById('tipNumber').textContent = `النصيحة ${tipIndex + 1} من ${dailyAdvices.length}`;
+        }
+        
+        // التهيئة
+        function init() {
+            loadSettings();
+            createStars();
+            showDailyTip();
+            updateTime();
+            checkLockStatus();
+            
+            // تحديث كل ثانية
+            setInterval(updateTime, 1000);
+            
+            // التحقق من القفل كل 30 ثانية
+            setInterval(checkLockStatus, 30000);
+            
+            // تحديث الوقت المتبقي كل دقيقة
+            setInterval(updateRemainingTime, 60000);
+        }
+        
+        // PWA Install
+        let deferredPrompt;
+        
+        window.addEventListener('beforeinstallprompt', (e) => {
+            e.preventDefault();
+            deferredPrompt = e;
+            document.getElementById('installPrompt').classList.remove('hidden');
+            document.getElementById('installInstructions').classList.add('hidden');
+        });
+        
+        function installApp() {
+            if (deferredPrompt) {
+                deferredPrompt.prompt();
+                deferredPrompt.userChoice.then((choiceResult) => {
+                    if (choiceResult.outcome === 'accepted') {
+                        showToast('🎉 تم تثبيت التطبيق بنجاح!');
+                        document.getElementById('installSection').classList.add('hidden');
+                    }
+                    deferredPrompt = null;
+                });
+            }
+        }
+        
+        window.addEventListener('appinstalled', () => {
+            showToast('🎉 تم تثبيت التطبيق بنجاح!');
+            document.getElementById('installSection').classList.add('hidden');
+        });
+        
+        // التحقق إذا كان التطبيق مثبتاً مسبقاً
+        if (window.matchMedia('(display-mode: standalone)').matches) {
+            document.getElementById('installSection').classList.add('hidden');
+        }
+        
+        // تسجيل Service Worker للعمل بدون إنترنت
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('data:text/javascript;base64,' + btoa(`
+                self.addEventListener('install', (e) => {
+                    self.skipWaiting();
+                });
+                self.addEventListener('activate', (e) => {
+                    e.waitUntil(clients.claim());
+                });
+                self.addEventListener('fetch', (e) => {
+                    e.respondWith(fetch(e.request).catch(() => caches.match(e.request)));
+                });
+            `)).catch(() => {});
+        }
+        
+        // بدء التطبيق
+        init();
+    </script>
+</body>
+</html>
